@@ -1,0 +1,5 @@
+Net Boot Image Compiler - nbic
+
+This project attempts to automate the process of producing a netboot image
+from a reference root filesystem.
+
