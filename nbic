@@ -13,7 +13,7 @@ function help()
 	    " -d, --dir DIR   Use DIR as input directory.\n"       \
 	    " -o, --out CPIO  Create output archive CPIO.\n"       \
 	    "\n"                                                   \
-	    "Examples: $NAME -d linux.d -o ramfs.cpio\n";
+	    "Examples: $NAME -d linux -o ramfs.cpio\n";
 }
 
 function work()
