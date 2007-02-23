@@ -1,29 +1,25 @@
 #!/bin/bash
 
-NAME=cpio-diff
+NAME=cpio-list
 VERSION=0.1.0
 
 function help()
 {
-    echo -e "\`$NAME' prints a diff between two cpio archives\n"   \
+    echo -e "\`$NAME' prints a list of the contents of a cpio\n"   \
 	    "\n"                                                   \
-	    "Usage: $NAME LEFT RIGHT\n"                            \
+	    "Usage: $NAME CPIO\n"                                  \
 	    " -?, --help      Show this help statement.\n"         \
 	    "     --version   Show version statement.\n"           \
 	    "\n"                                                   \
-	    "Examples: $NAME ramfs.cpio newramfs.cpio\n";
+	    "Examples: $NAME ramfs.cpio\n";
 }
 
 function work()
 {
     local left=$1;
-    local right=$2;
 
     cpio -t --quiet < $left | sort > /tmp/left.$$ || return 1;
-    cpio -t --quiet < $right | sort > /tmp/right.$$ || return 1;
-
-    diff -u /tmp/left.$$ /tmp/right.$$;
-
+    cat /tmp/left.$$ || return 1;
     rm -f /tmp/left.$$ /tmp/right.$$ || return 1;
 
     return 0;
@@ -32,7 +28,6 @@ function work()
 function main()
 {
     local left;
-    local right;
 
     while [ $# -gt 0 ]; do
         case $1 in
@@ -45,8 +40,6 @@ function main()
         *)
             if [ -z "$left" ]; then
 	    	left=$1;
-	    elif [ -z "$right" ]; then
-	    	right=$1;
 	    else
 	        echo "$NAME: too many arguments: $1"
 		return 1;
@@ -56,12 +49,12 @@ function main()
         esac
     done
 
-    [ -z "$left" -o -z "$right" ] && { 
+    [ -z "$left" ] && { 
     	help; 
 	return 1;
     }
 
-    work $left $right || { 
+    work $left || { 
     	echo "$NAME: bailing out because of errors"; return 1;
     }
 
