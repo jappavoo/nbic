@@ -36,7 +36,7 @@ function work()
     sudo cpio -id --quiet --no-absolute-filenames < $cpio1 &&
     sudo find . | egrep -v "$files" > $list &&
     sudo cpio -o --quiet -H newc -O $cpio2 < $list &&
-    sudo chmod 644 $cpio2 &&
+    sudo chmod 666 $cpio2 &&
     sudo rm $list &&
     sudo rm -r -f $bounce || 
     return 1;

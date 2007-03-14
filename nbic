@@ -25,7 +25,7 @@ function work()
     local trim;
     local testcase;
 
-    out=$(cd $(dirname ./$out) && pwd)/$(basename $out);
+    out=$(cd $(dirname $out) && pwd)/$(basename $out);
     trim=$out.$$.d
     cpio=$out.$$.cpio
     timestamp=/tmp/nbic.timestamp.$$;
@@ -35,9 +35,10 @@ function work()
 
     touch $timestamp &&
     sleep 1 &&
-    sudo chroot $dir $testcase &&
+    sudo chroot $dir $testcase;
+
     cd $dir &&
-    sudo find . -anewer $timestamp > $raw &&
+    sudo find . -path ./proc -prune -o -anewer $timestamp > $raw &&
     echo "dev/console" >> $raw &&
     echo "proc" >> $raw &&
     cpio -o --quiet -H newc -O $cpio < $raw &&
