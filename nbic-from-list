@@ -8,46 +8,43 @@ function help()
     echo -e "\`$NAME' compiles cpio archives for netboot images\n" \
 	    "\n"                                                   \
 	    "Usage: $NAME -d DIR -o CPIO\n"                        \
-	    " -?, --help      Show this help statement.\n"         \
-	    "     --version   Show version statement.\n"           \
-	    " -d, --dir DIR   Use DIR as input directory.\n"       \
-	    " -o, --out CPIO  Create output archive CPIO.\n"       \
+	    " -?, --help       Show this help statement.\n"        \
+	    "     --version    Show version statement.\n"          \
+	    " -d, --dir DIR    Use DIR as input directory.\n"      \
+	    " -i, --input LIST Use LIST as list of files.\n"       \
+	    " -o, --out CPIO   Create output archive CPIO.\n"      \
 	    "\n"                                                   \
-	    "Examples: $NAME -d linux -o ramfs.cpio\n";
+	    "Examples: $NAME -d linux -i foo.list -o ramfs.cpio\n";
 }
 
 function work()
 {
     local dir=$1;
     local out=$2;
-    local timestamp;
+    local list=$3;
+
+    local raw;
     local cpio;
     local trim;
-    local testcase;
 
     out=$(cd $(dirname $out) && pwd)/$(basename $out);
     trim=$out.$$.d
     cpio=$out.$$.cpio
-    timestamp=/tmp/nbic.timestamp.$$;
-    raw=/tmp/nbic.raw.$$;
     final=/tmp/nbic.final.$$;
-    testcase=/init;
+    raw=/tmp/nbic.raw.$$;
 
-    touch $timestamp &&
-    sleep 1 &&
-    sudo chroot $dir $testcase;
-
+    cp $list $raw &&
     cd $dir &&
-    sudo find . -path ./proc -prune -o -anewer $timestamp > $raw &&
     echo "dev/console" >> $raw &&
     echo "proc" >> $raw &&
+    echo "init" >> $raw &&
     sudo cpio -o --quiet -H newc -O $cpio < $raw &&
     mkdir $trim &&
     cd $trim &&
     sudo cpio -id --quiet --no-absolute-filenames < $cpio &&
     sudo find . > $final &&
     sudo cpio -o --quiet -H newc -O $out < $final &&
-    sudo rm $cpio $timestamp $raw $final &&
+    sudo rm $cpio $final &&
     sudo rm -r -f $trim || 
     return 1;
 
@@ -69,6 +66,9 @@ function main()
         -d | --dir)
             shift; dir=$1; shift;
             ;;
+        -i | --input)
+            shift; raw=$1; shift;
+            ;;
         -o | --out)
             shift; out=$1; shift;
             ;;
@@ -80,9 +80,9 @@ function main()
 
     [ -z "$out" ] && out=$PWD/nbic.cpio;
 
-    [ -d "$dir" -a -n "$out" ] || { help; return 1; }
+    [ -d "$dir" -a -n "$out" -a -n "$raw" ] || { help; return 1; }
 
-    work $dir $out || { 
+    work $dir $out $raw || { 
     	echo "$NAME: bailing out because of errors"; return 1;
     }
 

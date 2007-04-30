@@ -11,7 +11,7 @@ function help()
 	    " -?, --help      Show this help statement.\n"         \
 	    "     --version   Show version statement.\n"           \
 	    "\n"                                                   \
-	    "Examples: $NAME ramfs.cpio linux/bin/cat\n";
+	    "Examples: $NAME cpio-add ../iptables.cpio init\n";
 }
 
 function work()
