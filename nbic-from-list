@@ -36,9 +36,15 @@ function work()
     cp $list $raw &&
     cd $dir &&
     echo "dev/console" >> $raw &&
+    echo "dev/ptmx" >> $raw &&
+    echo "dev/null" >> $raw &&
+    echo "dev/pts" >> $raw &&
+    echo "mnt" >> $raw &&
     echo "proc" >> $raw &&
+    echo "sys" >> $raw &&
     echo "init" >> $raw &&
-    sudo cpio -o --quiet -H newc -O $cpio < $raw &&
+    sort $raw | uniq > $final &&
+    sudo cpio -o --quiet -H newc -O $cpio < $final &&
     mkdir $trim &&
     cd $trim &&
     sudo cpio -id --quiet --no-absolute-filenames < $cpio &&
