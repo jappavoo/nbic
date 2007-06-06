@@ -3,3 +3,88 @@ Net Boot Image Compiler - nbic
 This project attempts to automate the process of producing a netboot image
 from a reference root filesystem.
 
+Getting a builtin initramfs to work on PPC is tricky.  The only way I
+have found to do it is a fragile two-stage process.  
+
+I assume that you want to build an initramfs necessary and sufficient to
+run xend and launch a domU, so in the following I describe one technique
+that may prove useful for that attempt.  It attempts to find by
+inspection on the NFS server the minimal set of files required to launch
+a domU.
+
+In the following, NFS denotes the host from which you serve your
+nfsroot, and DEV denotes the machine on which you compile Linux and Xen.
+
+   NFS: 
+        cd ~/devel/nfsroots/
+        touch TIMESTAMP
+   DEV:
+        cd xenppc-unstable.hg/xen
+        net-boot -m VICTIM -f xen
+   NFS: 
+        cd sles10-rootfs-2006-11-20/
+        sudo find * -anewer ../TIMESTAMP > ../xend.list
+        cd ..
+        sudo rsync -a --files-from=xend.list sles10-rootfs-2006-11-20/ xend/
+   DEV:
+        cd ../../linux-ppc-2.6.hg/
+        sudo rsync -a root@NFS:/home/you/devel/nfsroots/xend/ xend/
+        sudo chmod o+r xend/etc/ssh/ssh_host_dsa_key \
+                       xend/etc/ssh/ssh_host_key     \
+                       xend/etc/ssh/ssh_host_rsa_key \
+                       xend/etc/ssh/sshd_config      \
+                       xend/sbin/blogd xend/usr/sbin/klogconsole
+
+At this point, you need to work around (what I think is) a bug in
+Linux's initramfs build logic or in PPC Linux's boot logic.  First put
+this in a file called xend.list:
+
+ dir /dev 755 0 0
+ nod /dev/console 644 0 0 c 5 1
+ nod /dev/loop0 644 0 0 b 7 0
+ dir /proc 755 0 0
+ dir /sys 755 0 0
+ dir /mnt 755 0 0
+ file /init xend/sbin/quickinit 755 0 0
+
+Then edit Linux's .config to have:
+
+ CONFIG_INITRAMFS_SOURCE="xend.list"
+
+Now you can resume the build process:
+
+   DEV:
+        scripts/gen_initramfs_list.sh xend >> xend.list
+        make CROSS_COMPILE='distcc powerpc64-linux-' \
+             CROSS_COMPILE32=powerpc-linux- ARCH=powerpc zImage
+        cd ../xenppc-unstable.hg/xen/
+        make CROSS_COMPILE=powerpc64-linux- XEN_TARGET_ARCH=powerpc64 \
+             DOM0_IMAGE =~/devel/xen/linux-ppc-2.6.hg/arch/powerpc/boot/zImage
+        net-boot -m VICTIM -f xen
+
+So in theory, what we have now is a root filesystem sufficient to run
+the regular quickinit script that does the automounts, launches sshd,
+and starts xend.  However, the total netboot image size is 13 MB, so xen
+boots properly and Linux starts fine, but hangs when unzipping the initramfs:
+
+ gunzipping (0x1400000 <- 0x407000:0xeef729)...
+
+You will have to figure how how to trim files from xend.list that, while
+were accessed during our reference nfsroot boot process, are not
+strictly necessary to run xend and launch domUs.  Alternatively, you can
+take a look at what is going wrong with Linux's initramfs logic in which
+it cannot handle an approximately 9MB compressed initramfs.
+
+Just to make sure that we are on the right track, if you place the
+5-tuples at the end of this email into xend.list, the resultant
+initramfs will provide you with a basic libc6 environment with bash and
+a few standard utilities.  The xen netboot image is 7.6 MB.
+
+Note that after editing xend.list and before recompiling, you have to do
+this to work around a problem in Linux's initramfs build deps:
+
+        rm usr/initramfs_data.cpio*
+
+Good luck.  I hope you are able to extend this technique, or discover a
+better one, to build a minimal Xen dom0.
+
