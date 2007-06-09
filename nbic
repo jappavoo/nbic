@@ -39,14 +39,18 @@ function work()
 
     cd $dir &&
     sudo find . -path ./proc -prune -o -anewer $timestamp > $raw &&
-    echo "dev/console" >> $raw &&
+    echo "./dev/console" >> $raw &&
     echo "proc" >> $raw &&
-    sudo cpio -o --quiet -H newc -O $cpio < $raw &&
+    echo "sys" >> $raw &&
+    echo "dev/pts" >> $raw &&
+    sort $raw | uniq > $final &&
+    sudo cpio -o --quiet -H newc -O $cpio < $final &&
     mkdir $trim &&
     cd $trim &&
     sudo cpio -id --quiet --no-absolute-filenames < $cpio &&
     sudo find . > $final &&
     sudo cpio -o --quiet -H newc -O $out < $final &&
+    sudo chown $USER $out &&
     sudo rm $cpio $timestamp $raw $final &&
     sudo rm -r -f $trim || 
     return 1;

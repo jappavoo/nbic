@@ -7,7 +7,7 @@ function help()
 {
     echo -e "\`$NAME' compiles cpio archives for netboot images\n" \
 	    "\n"                                                   \
-	    "Usage: $NAME -d DIR -o CPIO\n"                        \
+	    "Usage: $NAME -d DIR -i LIST -o CPIO\n"                \
 	    " -?, --help       Show this help statement.\n"        \
 	    "     --version    Show version statement.\n"          \
 	    " -d, --dir DIR    Use DIR as input directory.\n"      \
