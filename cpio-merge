@@ -5,14 +5,14 @@ VERSION=0.1.0
 
 function help()
 {
-    echo -e "\`$NAME' merges cpio archives using nbic semantics\n"   \
+    echo -e "\`$NAME' merges cpio archives\n"                        \
 	    "\n"                                                     \
 	    "Usage: $NAME -l CPIO1 -r CPIO2 -o CPIO3\n"              \
 	    " -?, --help        Show this help statement\n"          \
 	    "     --version     Show version statement\n"            \
-	    " -l, --left CPIO1  Merge CPIO1 with right hand\n"       \
-	    " -r, --right CPIO2 Merge CPIO2 with left hand\n"        \
-	    " -o, --out CPIO3   Create CPIO3 with merge\n"           \
+	    " -l, --left CPIO1  First unpack CPIO1\n"                \
+	    " -r, --right CPIO2 Then unpack CPIO2 on top\n"          \
+	    " -o, --out CPIO3   Create CPIO3 as result of merge\n"   \
 	    "\n"                                                     \
 	    "Examples: $NAME -l foo.cpio -r bar.cpio -o baz.cpio\n";
 }
