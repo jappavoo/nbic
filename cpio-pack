@@ -1,33 +1,34 @@
 #!/bin/bash
 
-NAME=cpio-unpack
+NAME=cpio-pack
 VERSION=0.1.0
 
 function help()
 {
-    echo -e "\`$NAME' unpacks cpio archives\n"                   \
+    echo -e "\`$NAME' packs cpio archives\n"                     \
 	    "\n"                                                 \
-	    "Usage: $NAME -f CPIO -d DIR\n"                      \
+	    "Usage: $NAME -d DIR -f CPIO\n"                      \
 	    " -?, --help      Show this help statement\n"        \
 	    "     --version   Show version statement\n"          \
-	    " -f, --file CPIO Use CPIO as input archive\n"       \
-	    " -d, --dir DIR   Create output in directory DIR\n"  \
+	    " -d, --dir DIR   Use directory DIR as input\n"      \
+	    " -f, --file CPIO Create output archive CPIO\n"      \
 	    "\n"                                                 \
-	    "Examples: $NAME -f foo.cpio -d foo\n";
+	    "Examples: $NAME -d foo -f foo.cpio\n";
 }
 
 function work()
 {
-    local cpio=$1;
-    local dir=$2;
+    local dir=$1;
+    local cpio=$2;
+
+    list=$(mktemp);
 
     cpio=$(cd $(dirname $cpio) && pwd)/$(basename $cpio);
 
-    mkdir -p $dir &&
-    cd $dir &&
-    test -f $cpio &&
-    sudo cpio -id -u --quiet --no-absolute-filenames < $cpio ||
-    return 1;
+    cd $dir && sudo find * > $list || return 1;
+    cd ..
+
+    nbic-from-list -d $dir -i $list -o $cpio || return 1;
 
     return 0;
 }
@@ -57,12 +58,17 @@ function main()
         esac
     done
    
-    [ -f "$cpio" -a -n "$dir" ] || { 
+    [ -d "$dir" -a -n "$cpio" ] || { 
     	help;
 	return 1;
     }
 
-    work $cpio $dir || { 
+    [ -f "$cpio" ] && {
+    	echo "$NAME: refusing to clobber cpio: $cpio"; 
+	return 1;
+    }
+
+    work $dir $cpio || { 
     	echo "$NAME: bailing out because of errors";
 	return 1;
     }
