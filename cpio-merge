@@ -25,12 +25,13 @@ function work()
 
     dir=$(mktemp -d nbic.XXXXXX);
 
-    test -d $dir || return 1;
-    cpio-unpack -f $cpio1 -d $dir || return 1;
-    cpio-unpack -f $cpio2 -d $dir || return 1;
-    cpio-pack -d $dir -f $cpio3 || return 1;
-    sudo rm -r $dir || return 1;
-    sudo chown $USER $cpio3 || return 1;
+    test -d $dir &&
+    cpio-unpack -f $cpio1 -d $dir &&
+    cpio-unpack -f $cpio2 -d $dir &&
+    cpio-pack -d $dir -o $cpio3 &&
+    sudo rm -r $dir &&
+    sudo chown $USER $cpio3 ||
+    return 1;
 
     return 0;
 }
