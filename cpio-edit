@@ -22,8 +22,8 @@ function work()
     local dir=$(mktemp -d $cpio.XXXXXX);
     local tmp=$cpio.edit;
 
-    cpio-unpack -f $cpio -d $dir || return 1;
-    sudo chroot $dir /chroot;
+    cpio-unpack -f $cpio -d $dir &&
+    sudo chroot $dir /chroot &&
     cpio-pack -d $dir -o $tmp &&
     sudo rm -r -f $dir &&
     mv $tmp $cpio ||
