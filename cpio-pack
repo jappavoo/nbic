@@ -11,7 +11,7 @@ function help()
 	    " -?, --help      Show this help statement\n"        \
 	    "     --version   Show version statement\n"          \
 	    " -d, --dir DIR   Use directory DIR as input\n"      \
-	    " -f, --file CPIO Create output archive CPIO\n"      \
+	    " -o, --out CPIO  Create output archive CPIO\n"      \
 	    "\n"                                                 \
 	    "Examples: $NAME -d foo -f foo.cpio\n";
 }
@@ -46,11 +46,11 @@ function main()
         --version)
             echo "$NAME $VERSION"; return 1;
             ;;
-        -f | --file)
-            shift; cpio=$1; shift;
-            ;;
         -d | --dir)
             shift; dir=$1; shift;
+            ;;
+        -o | --out)
+            shift; cpio=$1; shift;
             ;;
         *)
 	    echo "$NAME: bad argument: $1"; return 1;

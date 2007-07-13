@@ -11,7 +11,7 @@ function help()
 	    " -?, --help      Show this help statement.\n"         \
 	    "     --version   Show version statement.\n"           \
 	    "\n"                                                   \
-	    "Examples: $NAME ramfs.cpio newramfs.cpio\n";
+	    "Examples: $NAME left.cpio right.cpio\n";
 }
 
 function work()
