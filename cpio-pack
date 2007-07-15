@@ -28,7 +28,8 @@ function work()
     cd $dir &&
     sudo find . > $list &&
     cd - &&
-    nbic -d $dir -i $list -o $cpio ||
+    rm -f $cpio &&
+    nbic -d $dir -l $list -o $cpio ||
     return 1;
 
     return 0;

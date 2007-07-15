@@ -4,6 +4,8 @@ NAME=nbic
 VERSION=0.1.0
 EXCLUDES="usr/lib/locale|/usr/lib/gconv|var/log/lastlog|bash_history"
 EXCLUDES="$EXCLUDES|usr/lib/locale"
+INCLUDES="init mnt proc sys tmp dev var/tmp home"
+INCLUDES="$INCLUDES var/lib var/lock var/log var/run var/lib/dhcp/dhcpd.leases"
 
 function help()
 {
@@ -26,21 +28,23 @@ function make_cpio_from_list()
     local out=$2;
     local list=$3;
 
-    out=$(cd $(dirname $out) && pwd)/$(basename $out);
     local trim=$out.$$.d
     local cpio=$out.$$.cpio
+    local tmp=$(mktemp);
     local final=/tmp/nbic.final.$$;
-    local excludes="($EXCLUDES)";
+    local excludes="($EXCLUDES|^.$)";
 
     cd $dir &&
-    sort $list | uniq > $final &&
+    sudo find $INCLUDES -maxdepth 0 > $tmp &&
+    sudo find dev >> $tmp &&
+    sort $list $tmp | uniq > $final &&
     sudo cpio -o --quiet -H newc -O $cpio < $final &&
     mkdir $trim &&
     cd $trim &&
     sudo cpio -id --quiet --no-absolute-filenames < $cpio &&
-    sudo find . | egrep -v "(^.$|$EXCLUDES)" > $final &&
+    sudo find . | egrep -v $excludes > $final || true &&
     sudo cpio -o --quiet -H newc -O $out < $final &&
-    sudo rm $cpio $final &&
+    sudo rm $cpio $final $tmp &&
     sudo rm -r -f $trim || 
     return 1;
 
@@ -66,14 +70,6 @@ function work()
 
     cd $dir &&
     sudo find . -path ./proc -prune -o -anewer $stamp > $raw &&
-    echo "./init" >> $raw &&
-    echo "./mnt" >> $raw &&
-    echo "./proc" >> $raw &&
-    echo "./sys" >> $raw &&
-    echo "./dev/console" >> $raw &&
-    echo "./dev/null" >> $raw &&
-    echo "./dev/ptmx" >> $raw &&
-    echo "./dev/pts" >> $raw &&
     cd - || return 1;
 
     make_cpio_from_list $dir $out $raw || return 1;
@@ -101,10 +97,13 @@ function main()
         -l | --list)
             shift;
             list=$(cd $(dirname $1) && pwd)/$(basename $1);
+            test -f $list || { help; return 1; }
             shift;
             ;;
         -o | --out)
-            shift; out=$1; shift;
+            shift;
+            out=$(cd $(dirname $1) && pwd)/$(basename $1);
+            shift;
             ;;
         *)
 	    echo "$NAME: bad argument: $1"; return 1;
