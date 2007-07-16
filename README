@@ -3,6 +3,88 @@ Net Boot Image Compiler - nbic
 This project attempts to automate the process of producing a netboot image
 from a reference root filesystem.
 
+Quick Start
+===========
+
+To make a initramfs image that can run bash, cat, and ls, you must first have a
+chroot directory that contains a root filesystem for your desired distribution.
+One easy way to do this is to use Debian:
+
+ sudo debootstrap sarge sarge http://ftp.debian.org/debian
+
+To verify that you have a proper result, make sure you get a shell when you
+do this:
+
+ sudo chroot sarge /bin/bash
+
+Now create a file in your chroot directory named chroot, as nbic will execute
+it when chroot'ing to the directory:
+
+ sudo echo "/bin/bash" > sarge/chroot
+ sudo chmod +x sarge/chroot
+
+Now run nbic to create your initramfs cpio image:
+
+ nbic -d bittorrent -o bash.cpio
+
+You will get a shell as a result of that command, so simply run all the
+commands you want in your image and exit.  In this example, you would run cat
+and ls.  The resulting image will typically be on the order of 3.9MB.
+
+Note that nbic comes with a suite of utilities for manipulating the resultant
+cpio image.  For example, you can list the contents of the image you just
+created with:
+
+ cpio-list bash.cpio
+
+Typically, your /chroot will have enough infrastructure so that you can run
+things like apt-get.  Here is a simple example:
+
+---
+
+#!/bin/bash
+
+HOME=/root
+LOGNAME=root
+TERM=vt100
+PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin
+ENV="HOME=$HOME LOGNAME=$LOGNAME TERM=$TERM PATH=$PATH"
+
+mount -t proc /proc /proc
+mount -t sysfs /sys /sys
+mount -t devpts devpts /dev/pts
+env -i $ENV /bin/bash --login --noprofile --norc
+umount /dev/pts
+umount /sys
+umount /proc
+
+---
+
+
+NFS Tracing
+===========
+
+The preceding section described how to create an initramfs using a chroot
+technique.  Sometimes however you will want to use NFS tracing to generate the
+list of files that should be included.
+
+Fundamentally, nbic just needs a list of files.  You can use strace, the find
+command with the -atime option, or any number of other methods to generate this
+list.
+
+See the following section for how to use NFS tracing to generate the list.
+
+Mailing List Post to xen-ppc
+============================
+
+Note: this post is mostly out of date.  Specifically, nbic now creates a cpio
+image of the form required by the Linux kernel, and automatically creates the
+directory components of a pathname, and automatically includes the required
+device nodes.  These three problems caused the mysterious hangs described
+earlier, and have been solved.
+
+---
+
 Getting a builtin initramfs to work on PPC is tricky.  The only way I
 have found to do it is a fragile two-stage process.  
 
