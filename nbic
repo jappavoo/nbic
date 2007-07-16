@@ -62,11 +62,10 @@ function work()
     local stamp=/tmp/nbic.tamp.$$;
     local raw=/tmp/nbic.raw.$$;
     local final=/tmp/nbic.final.$$;
-    local testcase=/chroot;
 
     touch $stamp &&
     sleep 0.5 &&
-    sudo chroot $dir $testcase;
+    nd $dir;
 
     cd $dir &&
     sudo find . -path ./proc -prune -o -anewer $stamp > $raw &&

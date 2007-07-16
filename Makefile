@@ -1,9 +1,8 @@
-DESTDIR=/usr/local/bin
-CPIO=cpio-add cpio-filter cpio-sort cpio-diff cpio-list cpio-unpack
-NBIC=nbic
-PROGRAMS=$(NBIC) $(CPIO)
+DESTDIR = /usr/local/bin
+PROGRAMS = cpio-add cpio-chroot cpio-diff cpio-edit cpio-filter cpio-list \
+           cpio-merge cpio-pack cpio-sort cpio-unpack nbic nd trace-files
 
 all:
 
 install: all
-	echo install $(PROGRAMS) $(DESTDIR)
+	install $(PROGRAMS) $(DESTDIR)
