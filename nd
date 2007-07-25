@@ -1,0 +1,8 @@
+#!/bin/bash
+
+test $# -eq 1 || {
+    echo "usage: $(basename $0) DIR"
+    exit 1
+}
+
+sudo chroot $1 /chroot

@@ -1,7 +1,11 @@
 #!/bin/bash
 
 NAME=nbic
-VERSION=0.1.0
+VERSION=0.2.0
+EXCLUDES="usr/lib/locale|/usr/lib/gconv|var/log/lastlog|bash_history"
+EXCLUDES="$EXCLUDES|usr/lib/locale"
+INCLUDES="init mnt proc sys tmp dev var/tmp home"
+INCLUDES="$INCLUDES var/lib var/lock var/log var/run var/lib/dhcp/dhcpd.leases"
 
 function help()
 {
@@ -11,7 +15,7 @@ function help()
 	    " -?, --help      Show this help statement.\n"                  \
 	    "     --version   Show version statement.\n"                    \
 	    " -d, --dir DIR   Use DIR as input directory.\n"                \
-            " -i, --list LIST Select files from LIST instead of tracing.\n" \
+            " -l, --list LIST Select files from LIST instead of tracing.\n" \
 	    " -o, --out CPIO  Create output archive CPIO.\n"                \
 	    "\n"                                                            \
 	    "Examples: $NAME -d linux -o ramfs.cpio\n"                      \
@@ -24,20 +28,24 @@ function make_cpio_from_list()
     local out=$2;
     local list=$3;
 
-    out=$(cd $(dirname $out) && pwd)/$(basename $out);
     local trim=$out.$$.d
     local cpio=$out.$$.cpio
+    local tmp=$(mktemp);
     local final=/tmp/nbic.final.$$;
+    local excludes="($EXCLUDES|^.$)";
 
+    # Two-stage cpio pack/unpack to get directory components of pathnames
     cd $dir &&
-    sort $list | uniq > $final &&
+    sudo find $INCLUDES -maxdepth 0 > $tmp &&
+    sudo find dev >> $tmp &&
+    sort $list $tmp | uniq > $final &&
     sudo cpio -o --quiet -H newc -O $cpio < $final &&
     mkdir $trim &&
     cd $trim &&
     sudo cpio -id --quiet --no-absolute-filenames < $cpio &&
-    sudo find . | egrep -v '^.$' > $final &&
+    sudo find . | egrep -v $excludes > $final || true &&
     sudo cpio -o --quiet -H newc -O $out < $final &&
-    sudo rm $cpio $final &&
+    sudo rm $cpio $final $tmp &&
     sudo rm -r -f $trim || 
     return 1;
 
@@ -52,26 +60,16 @@ function work()
     out=$(cd $(dirname $out) && pwd)/$(basename $out);
     local trim=$out.$$.d
     local cpio=$out.$$.cpio
-    local timestamp=/tmp/nbic.timestamp.$$;
+    local stamp=/tmp/nbic.tamp.$$;
     local raw=/tmp/nbic.raw.$$;
     local final=/tmp/nbic.final.$$;
-    local testcase=/chroot;
-    local excludes="(usr/lib/locale|/usr/lib/gconv|var/log/lastlog|bash_history)";
 
-    touch $timestamp &&
+    touch $stamp &&
     sleep 0.5 &&
-    sudo chroot $dir $testcase;
+    nd $dir;
 
     cd $dir &&
-    sudo find . -path ./proc -prune -o -anewer $timestamp | egrep -v "$excludes" > $raw &&
-    echo "./init" >> $raw &&
-    echo "./mnt" >> $raw &&
-    echo "./proc" >> $raw &&
-    echo "./sys" >> $raw &&
-    echo "./dev/console" >> $raw &&
-    echo "./dev/null" >> $raw &&
-    echo "./dev/ptmx" >> $raw &&
-    echo "./dev/pts" >> $raw &&
+    sudo find . -path ./proc -prune -o -anewer $stamp > $raw &&
     cd - || return 1;
 
     make_cpio_from_list $dir $out $raw || return 1;
@@ -96,11 +94,16 @@ function main()
         -d | --dir)
             shift; dir=$1; shift;
             ;;
-        -i | --list)
-            shift; list=$1; shift;
+        -l | --list)
+            shift;
+            list=$(cd $(dirname $1) && pwd)/$(basename $1);
+            test -f $list || { help; return 1; }
+            shift;
             ;;
         -o | --out)
-            shift; out=$1; shift;
+            shift;
+            out=$(cd $(dirname $1) && pwd)/$(basename $1);
+            shift;
             ;;
         *)
 	    echo "$NAME: bad argument: $1"; return 1;
