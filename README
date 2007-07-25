@@ -1,44 +1,90 @@
-Net Boot Image Compiler - nbic
+`nbic' README -- instructions for building and introduction to the project.
+Copyright (C) 2007  Amos Waterland.
+See the end for copying conditions.
 
-This project attempts to automate the process of producing a netboot image
-from a reference root filesystem.
+Net Boot Image Compiler - nbic.
+
+Please send `nbic' bug reports and patches to <apw@us.ibm.com>.
+
+Introduction
+============
+
+The nbic tools automate the process of building stripped-down root
+filesystems for Linux on diskless compute nodes.
+
+The project was developed for running standard Linux userspaces on the
+Blue Gene/P, but it has also been used to build dom0 images for Xen
+and automated firmware reflashers for blades.  It is informally
+described as a "cpio builder", since Linux's format for its initramfs
+root filesystem is cpio.  The cpio images produced by nbic are
+typically an order of magnitude smaller than the software appliances
+produced by other techniques.
+
+The nbic tools assume the existence of a reference root directory
+tree, whether it is just managed by chroot or is a full nfsroot
+target.  The central design point is that the desired application
+stack is made to work in the reference environment, and then nbic is
+used to snapshot a stateless image that contains only the files
+actually used by the boot process and the target application stack.
+
+This approach contrasts with the Busybox approach, in which one builds
+from the bottom up the desired components.  Busybox is a good design
+for the embedded space, but it is hoped that nbic will complement it
+in the purpose-optimized software appliance space.
 
 Quick Start
 ===========
 
-To make a initramfs image that can run bash, cat, and ls, you must first have a
-chroot directory that contains a root filesystem for your desired distribution.
-One easy way to do this is to use Debian:
+To make a initramfs image that can run bash, cat, and ls, one must
+first have a chroot directory that contains a root filesystem for the
+desired distribution.  One easy way to do this is to use Debian:
 
- sudo debootstrap sarge sarge http://ftp.debian.org/debian
+ sudo debootstrap sarge sarge/ http://ftp.debian.org/debian
 
-To verify that you have a proper result, make sure you get a shell when you
-do this:
+To verify that one has a proper result, the following command should
+result in a root shell:
 
- sudo chroot sarge /bin/bash
+ sudo chroot sarge/ /bin/bash
 
-Now create a file in your chroot directory named chroot, as nbic will execute
-it when chroot'ing to the directory:
+Now create a file in the chroot directory named `chroot', as nbic will
+execute it when chroot'ing to the directory:
 
  sudo echo "/bin/bash" > sarge/chroot
  sudo chmod +x sarge/chroot
 
-Now run nbic to create your initramfs cpio image:
+Note that we use sudo privelege escalation only as necessary in these
+examples.  We recommend that nbic be run as a regular user, since it
+internally invokes sudo if and only if it actually needs the
+privelege.
 
- nbic -d bittorrent -o bash.cpio
+Now run nbic to create the initramfs cpio image:
 
-You will get a shell as a result of that command, so simply run all the
-commands you want in your image and exit.  In this example, you would run cat
-and ls.  The resulting image will typically be on the order of 3.9MB.
+ nbic -d sarge/ -o bash.cpio
 
-Note that nbic comes with a suite of utilities for manipulating the resultant
-cpio image.  For example, you can list the contents of the image you just
-created with:
+A shell should result from the above command, so simply run all the
+commands desired to end up in the cpio image and exit.  In this
+example, one would run cat and ls.  The resulting image will typically
+be on the order of 3.9MB.  For repeated use, it is better to put the
+desired sequence of command in the /chroot script, to save the effort
+of typing them every time a new image is to be generated.  This is
+safe to do because on boot on a victim machine /init will be executed
+instead of /chroot.
+
+Note that nbic comes with a suite of utilities for manipulating the
+resultant cpio image.  For example, one can list the contents of the
+image just created with:
 
  cpio-list bash.cpio
 
-Typically, your /chroot will have enough infrastructure so that you can run
-things like apt-get.  Here is a simple example:
+Chroot Environment
+==================
+
+In the above we created a file named `chroot' in the root of the
+chroot directory.  We do this to automate the series of steps one
+takes each time one chroots into the directory.  For example, to get
+enough infrastructure so that one can run things like apt-get, making
+sure to clean up after oneself when exiting, we recommend a /chroot
+like this:
 
 ---
 
@@ -60,113 +106,173 @@ umount /proc
 
 ---
 
+Note that nbic provides and uses internally the nd utility to get a
+shell in your chroot directory, so instead of typing the full chroot
+commands listed above one can simply supply the directory as an
+argument to nd and it will chroot with /chroot in the exact same way
+that nbic does.
+
+Customizing Startup
+===================
+
+The Linux kernel looks for a file named /init when it boots from an
+initramfs image.  Typically, your /init will do more than your
+/chroot, since it is intended to boot a system, rather than just get a
+shell.  Through experiment we discovered that it is best to actually
+exec the standard init process after doing what is necessary to get
+the system ready for it.  Here is an example from a Debian initramfs
+we use:
+
+---
+
+#!/bin/bash
+
+mount -t proc /proc /proc
+mount -t sysfs /sys /sys
+mount -t devpts devpts /dev/pts
+echo 1 > /proc/sys/net/ipv4/ip_forward
+dhcpd eth1
+exec /sbin/init
+/bin/bash --login --noprofile --norc
+
+---
+
+In the above example we run bash at the end in case the exec fails.
+We exec init so that it will have the PID of 1 that the kernel
+expects.  Note that we stripped down /etc/rc2.d/ to contain just sshd
+and a few other startup scripts.
+
+The alternative to the exec of init approach is to write your own
+startup logic entirely in /init, usually ending with the explicit
+invocation of sshd.
 
 NFS Tracing
 ===========
 
-The preceding section described how to create an initramfs using a chroot
-technique.  Sometimes however you will want to use NFS tracing to generate the
-list of files that should be included.
+The preceding sections described how to create an initramfs using a
+chroot technique.  Oftentimes however one will want to use NFS tracing
+to generate the list of files that should be included.
 
-Fundamentally, nbic just needs a list of files.  You can use strace, the find
-command with the -atime option, or any number of other methods to generate this
-list.
+Fundamentally, nbic just needs a list of files.  The list can be
+generated through the use of strace, the find command with the -atime
+option, or any number of other methods.  By default, and in the
+examples above, nbic will automatically build the list of files by
+dropping the user into a chroot shell and observing the files accessed
+during the session, but in the real world its most common use is
+actually to be invoked with the `--list' option, in which a file
+containing a list of files discovered through tracing is supplied as
+an argument.
 
-See the following section for how to use NFS tracing to generate the list.
+We describe in this section how to generate the list of files through
+inspection on an NFS server.  
 
-Mailing List Post to xen-ppc
-============================
+First take the sarge/ reference directory we made in the previous
+sections, complete with its /chroot and /init additions, and export it
+via NFS.  Here is one configuration line for /etc/exports that is
+known to work:
 
-Note: this post is mostly out of date.  Specifically, nbic now creates a cpio
-image of the form required by the Linux kernel, and automatically creates the
-directory components of a pathname, and automatically includes the required
-device nodes.  These three problems caused the mysterious hangs described
-earlier, and have been solved.
+ /nfsroots/sarge 192.168.0.0/16(rw,insecure,sync,no_root_squash,no_all_squash)
 
----
+Note that the Linux kernel to be booted on the target hardware must be
+configured to use an nfsroot.  Here is an example command line, which
+can be placed in CONFIG_CMDLINE in .config or supplied by firmware or
+bootloader arguments, that is known to work:
 
-Getting a builtin initramfs to work on PPC is tricky.  The only way I
-have found to do it is a fragile two-stage process.  
+ ip=::::::dhcp ro root=/dev/nfs nfsroot=192.168.0.1:/nfsroots/sarge init=/init
 
-I assume that you want to build an initramfs necessary and sufficient to
-run xend and launch a domU, so in the following I describe one technique
-that may prove useful for that attempt.  It attempts to find by
-inspection on the NFS server the minimal set of files required to launch
-a domU.
+Note the use of init=/init.  We do this because the initramfs cpio
+image we are going to produce will implicitly use that argument, as
+Linux forces init to be /init if it detects an initramfs supplied to
+it.
 
-In the following, NFS denotes the host from which you serve your
-nfsroot, and DEV denotes the machine on which you compile Linux and Xen.
+First, create a timestamp file on the NFS server:
 
-   NFS: 
-        cd ~/devel/nfsroots/
-        touch TIMESTAMP
-   DEV:
-        cd xenppc-unstable.hg/xen
-        net-boot -m VICTIM -f xen
-   NFS: 
-        cd sles10-rootfs-2006-11-20/
-        sudo find * -anewer ../TIMESTAMP > ../xend.list
-        cd ..
-        sudo rsync -a --files-from=xend.list sles10-rootfs-2006-11-20/ xend/
-   DEV:
-        cd ../../linux-ppc-2.6.hg/
-        sudo rsync -a root@NFS:/home/you/devel/nfsroots/xend/ xend/
-        sudo chmod o+r xend/etc/ssh/ssh_host_dsa_key \
-                       xend/etc/ssh/ssh_host_key     \
-                       xend/etc/ssh/ssh_host_rsa_key \
-                       xend/etc/ssh/sshd_config      \
-                       xend/sbin/blogd xend/usr/sbin/klogconsole
+ touch /nfsroots/TIMESTAMP
 
-At this point, you need to work around (what I think is) a bug in
-Linux's initramfs build logic or in PPC Linux's boot logic.  First put
-this in a file called xend.list:
+Now boot the victim machine with the Linux kernel configured as in the
+preceding.  Log into the victim and exercise the desired set of
+programs, then shut the machine down either through software or a hard
+power-off.
 
- dir /dev 755 0 0
- nod /dev/console 644 0 0 c 5 1
- nod /dev/loop0 644 0 0 b 7 0
- dir /proc 755 0 0
- dir /sys 755 0 0
- dir /mnt 755 0 0
- file /init xend/sbin/quickinit 755 0 0
+Now on the NFS server run a nbic utility that generates a list of
+files accessed from the exported directory during the boot of the
+victim machine:
+
+ cd /nfsroots
+ trace-files -t TIMESTAMP -d sarge/ -o sarge.list
+
+Note that trace-files is not idempotent.  As of this release, it
+internally uses find with the -atime option, so its results are only
+valid the first time it is run after a nfs boot off the target
+directory.
+
+Now use nbic to generate a cpio image from the newly-created list:
+
+ nbic -d sarge/ --list sarge.list -o sarge.cpio
 
 Then edit Linux's .config to have:
 
- CONFIG_INITRAMFS_SOURCE="xend.list"
+ CONFIG_INITRAMFS_SOURCE="sarge.cpio"
 
-Now you can resume the build process:
+When Linux is recompiled and booted on the victim the user experience
+should be much the same as when it was using an nfsroot, with the
+exception that the root filesystem is now stateless in the sense that
+changes to it are not preserved across reboots.  This is a highly
+desireble property for software appliances and scale-out models, and
+has an analogy in the increasingly common use of livecds.  It also
+provides the locality necessary to boot thousands of machines with an
+identical root filesystem: our experiences with BG/P taught us that a
+single shared read/only nfsroot does not scale past 512 nodes.
 
-   DEV:
-        scripts/gen_initramfs_list.sh xend >> xend.list
-        make CROSS_COMPILE='distcc powerpc64-linux-' \
-             CROSS_COMPILE32=powerpc-linux- ARCH=powerpc zImage
-        cd ../xenppc-unstable.hg/xen/
-        make CROSS_COMPILE=powerpc64-linux- XEN_TARGET_ARCH=powerpc64 \
-             DOM0_IMAGE =~/devel/xen/linux-ppc-2.6.hg/arch/powerpc/boot/zImage
-        net-boot -m VICTIM -f xen
+The initramfs approach contrasts with the shared read/only nfsroot
+approach, in which a lot of work is done to make a collection of tmpfs
+directories like /var/tmp so that daemons have local writeable
+directories, in that the root filesystem is completely writeable, but
+the write are not preserved across boots.
 
-So in theory, what we have now is a root filesystem sufficient to run
-the regular quickinit script that does the automounts, launches sshd,
-and starts xend.  However, the total netboot image size is 13 MB, so xen
-boots properly and Linux starts fine, but hangs when unzipping the initramfs:
+As a final note, the big difference between our use of NFS tracing in
+this section and the chroot method in the previous is that NFS tracing
+gets the boot process while chroot does not.  All is not perfect
+however, as some distributions like SLES actually use udev instead of
+static device nodes.  This means that they mount a tmpfs over /dev
+early in boot, usually in /etc/init.d/boot, and then mknod devices on
+demand.  None of these devices are seen by the NFS tracing, so in this
+case it is usually best to just make sure that your /init provides
+support for the SLES init to create its device nodes as it normally
+does.
 
- gunzipping (0x1400000 <- 0x407000:0xeef729)...
+Common Problems
+===============
 
-You will have to figure how how to trim files from xend.list that, while
-were accessed during our reference nfsroot boot process, are not
-strictly necessary to run xend and launch domUs.  Alternatively, you can
-take a look at what is going wrong with Linux's initramfs logic in which
-it cannot handle an approximately 9MB compressed initramfs.
+If sshd fails to start with a message about PRNG not being seeded, you
+are most likely missing /dev/random.  See the above comment about SLES
+and its use of udev.
 
-Just to make sure that we are on the right track, if you place the
-5-tuples at the end of this email into xend.list, the resultant
-initramfs will provide you with a basic libc6 environment with bash and
-a few standard utilities.  The xen netboot image is 7.6 MB.
+Internals
+=========
 
-Note that after editing xend.list and before recompiling, you have to do
-this to work around a problem in Linux's initramfs build deps:
+When one first attempts to roll an initramfs image from scratch, three
+non-obvious errors are often encountered.  The first is that GNU cpio
+does not by default create a cpio image of the "newc" format expected
+by the Linux kernel.  The second is that the in-kernel cpio unpacker
+does not create the directory components of pathnames, which means
+that in the case of /dev/console, neither /dev nor /dev/console will
+exist if /dev is not explicitly included in the cpio image.  The third
+is that it can be difficult to guess which device nodes are required
+by init and sshd.  Each of these three problems are automatically
+handled by nbic.
 
-        rm usr/initramfs_data.cpio*
+----------------------------------------------------------------------
+Copyright information:
 
-Good luck.  I hope you are able to extend this technique, or discover a
-better one, to build a minimal Xen dom0.
+Copyright (C) 2007 Amos Waterland
 
+   Permission is granted to anyone to make or distribute verbatim copies
+   of this document as received, in any medium, provided that the
+   copyright notice and this permission notice are preserved,
+   thus giving the recipient permission to redistribute in turn.
+
+   Permission is granted to distribute modified versions
+   of this document, or of portions of it,
+   under the above conditions, provided also that they
+   carry prominent notices stating who last changed them.
