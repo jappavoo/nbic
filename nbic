@@ -5,7 +5,8 @@ VERSION=0.2.0
 EXCLUDES="usr/lib/locale|/usr/lib/gconv|var/log/lastlog|bash_history"
 EXCLUDES="$EXCLUDES|usr/lib/locale"
 INCLUDES="init mnt proc sys tmp dev var/tmp home"
-INCLUDES="$INCLUDES var/lib var/lock var/log var/run var/lib/dhcp/dhcpd.leases"
+INCLUDES="$INCLUDES var/lib var/lock var/log var/run"
+INCLUDES="$INCLUDES dev/console dev/loop0 dev/null"
 
 function help()
 {
@@ -37,7 +38,6 @@ function make_cpio_from_list()
     # Two-stage cpio pack/unpack to get directory components of pathnames
     cd $dir &&
     sudo find $INCLUDES -maxdepth 0 > $tmp &&
-    sudo find dev >> $tmp &&
     sort $list $tmp | uniq > $final &&
     sudo cpio -o --quiet -H newc -O $cpio < $final &&
     mkdir $trim &&

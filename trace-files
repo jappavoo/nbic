@@ -24,7 +24,8 @@ function work()
     local list=$3;
 
     cd $dir &&
-    sudo find * -anewer $stamp > $list ||
+    sudo find * -anewer $stamp > $list &&
+    chown $USER $list ||
     return 1;
 
     return 0;

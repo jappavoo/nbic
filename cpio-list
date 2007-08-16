@@ -18,7 +18,12 @@ function work()
 {
     local left=$1;
 
-    cpio -t --quiet < $left | sort > /tmp/left.$$ || return 1;
+    if [ ${left%%.gz} != $left ]; then
+        zcat $left | cpio -t --quiet | sort > /tmp/left.$$ || return 1;
+    else
+        cpio -t --quiet < $left | sort > /tmp/left.$$ || return 1;
+    fi
+
     cat /tmp/left.$$ || return 1;
     rm -f /tmp/left.$$ /tmp/right.$$ || return 1;
 
