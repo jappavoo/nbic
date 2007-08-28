@@ -5,4 +5,16 @@ test $# -eq 1 || {
     exit 1
 }
 
+test -f $1/chroot || {
+    echo "FAIL: missing file: $1/chroot"
+    exit 1
+}
+
+test -x $1/chroot || {
+    echo "WARN: setting executable bit on $1/chroot" &&
+    sudo chown $USER $1/chroot &&
+    chmod 755 $1/chroot || 
+    exit 1
+}
+
 sudo chroot $1 /chroot
