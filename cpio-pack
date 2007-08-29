@@ -27,7 +27,7 @@ function work()
 
     cd $dir &&
     sudo find . > $list &&
-    cd - &&
+    cd $OLDPWD &&
     rm -f $cpio &&
     nbic -d $dir -l $list -o $cpio ||
     return 1;
