@@ -46,11 +46,13 @@ result in a root shell:
 
  sudo chroot sarge/ /bin/bash
 
-Now create a file in the chroot directory named `chroot', as nbic will
-execute it when chroot'ing to the directory:
+Now create a file editable by your user account in the chroot directory 
+named `chroot', as nbic will execute it when chroot'ing to the directory:
 
- sudo echo "/bin/bash" > sarge/chroot
- sudo chmod +x sarge/chroot
+ sudo touch sarge/chroot
+ sudo chown $USER sarge/chroot
+ echo "/bin/bash" > sarge/chroot
+ chmod +x sarge/chroot
 
 Note that we use sudo privelege escalation only as necessary in these
 examples.  We recommend that nbic be run as a regular user, since it
@@ -247,6 +249,13 @@ Common Problems
 If sshd fails to start with a message about PRNG not being seeded, you
 are most likely missing /dev/random.  See the above comment about SLES
 and its use of udev.
+
+If debootstrap fails, it may be that it does not support the Debian
+release you are trying to bootstrap.  You can also try the cdeboostrap
+package, which seems to be what pbuilder uses internally.  Here is an
+example:
+
+ sudo cdebootstrap etch etch
 
 Internals
 =========
