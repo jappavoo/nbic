@@ -23,10 +23,10 @@ function work()
     local tmp=$cpio.edit;
 
     cpio-unpack -f $cpio -d $dir &&
-    sudo chroot $dir /chroot &&
+    nd $dir &&
     cpio-pack -d $dir -o $tmp &&
     sudo rm -r -f $dir &&
-    mv $tmp $cpio ||
+    mv -f $tmp $cpio ||
     return 1;
 
     return 0;

@@ -4,9 +4,9 @@ NAME=nbic
 VERSION=0.2.0
 EXCLUDES="usr/lib/locale|/usr/lib/gconv|var/log/lastlog|bash_history"
 EXCLUDES="$EXCLUDES|usr/lib/locale"
-INCLUDES="init mnt proc sys tmp dev var/tmp home"
-INCLUDES="$INCLUDES var/lib var/lock var/log var/run"
-INCLUDES="$INCLUDES dev/console dev/loop0 dev/null dev/random"
+INCLUDES="./init ./chroot ./mnt ./proc ./sys ./tmp ./dev ./var/tmp ./home"
+INCLUDES="$INCLUDES ./var/lib ./var/lock ./var/log ./var/run"
+INCLUDES="$INCLUDES ./dev/console ./dev/loop0 ./dev/null ./dev/random"
 
 function help()
 {
@@ -37,7 +37,7 @@ function make_cpio_from_list()
 
     # Two-stage cpio pack/unpack to get directory components of pathnames
     cd $dir &&
-    sudo touch init &&
+    sudo touch init chroot &&
     sudo find $INCLUDES -maxdepth 0 > $tmp &&
     sort $list $tmp | uniq > $final &&
     sudo cpio -o --quiet -H newc -O $cpio < $final &&
@@ -68,7 +68,7 @@ function work()
     local final=/tmp/nbic.final.$$;
 
     touch $stamp &&
-    sleep 0.5 &&
+    sleep 1.0 &&
     nd $dir;
 
     cd $dir &&
