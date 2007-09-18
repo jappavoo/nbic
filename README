@@ -51,7 +51,8 @@ named `chroot', as nbic will execute it when chroot'ing to the directory:
 
  sudo touch sarge/chroot
  sudo chown $USER sarge/chroot
- echo "/bin/bash" > sarge/chroot
+ echo '#!/bin/bash' > sarge/chroot
+ echo '/bin/bash' >> sarge/chroot
  chmod +x sarge/chroot
 
 Note that we use sudo privelege escalation only as necessary in these
