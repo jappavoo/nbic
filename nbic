@@ -17,7 +17,7 @@ function help()
         " -?, --help      Show this help statement.\n"                      \
         "     --version   Show version statement.\n"                        \
         " -d, --dir DIR   Use DIR as input directory.\n"                    \
-            " -l, --list LIST Select files from LIST instead of tracing.\n" \
+        " -l, --list LIST Select files from LIST instead of tracing.\n"     \
         " -o, --out CPIO  Create output archive CPIO.\n"                    \
         "\n"                                                                \
         "Examples: $NAME -d linux -o ramfs.cpio\n"                          \
@@ -110,7 +110,7 @@ function main()
             shift;
             ;;
         *)
-        echo "$NAME: bad argument: $1"; return 1;
+            echo "$NAME: bad argument: $1"; return 1;
             ;;
         esac
     done
@@ -118,19 +118,19 @@ function main()
     [ -z "$out" ] && out=$PWD/nbic.cpio;
 
     [ -d "$dir" -a -n "$out" ] || { 
-    help; 
-    return 1; 
+        help; 
+        return 1; 
     }
 
     if [ -f "$list" ]; then
-    make_cpio_from_list $dir $out $list;
+        make_cpio_from_list $dir $out $list;
     else
-    work $dir $out;
+        work $dir $out;
     fi
 
     if [ $? -ne 0 ]; then
-    echo "$NAME: bailing out because of errors"; 
-    return 1;
+        echo "$NAME: bailing out because of errors"; 
+        return 1;
     fi
 
     return 0;
