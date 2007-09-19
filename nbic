@@ -7,6 +7,7 @@ EXCLUDES="$EXCLUDES|usr/lib/locale"
 INCLUDES="./init ./chroot ./mnt ./proc ./sys ./tmp ./dev ./var/tmp ./home"
 INCLUDES="$INCLUDES ./var/lib ./var/lock ./var/log ./var/run"
 INCLUDES="$INCLUDES ./dev/console ./dev/loop0 ./dev/null ./dev/random"
+INCLUDES="$INCLUDES ./dev/tty0 ./dev/tty1 ./dev/urandom ./dev/pts"
 
 function help()
 {
