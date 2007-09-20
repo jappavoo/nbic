@@ -5,6 +5,9 @@ PROGRAMS = cpio-add cpio-chroot cpio-diff cpio-edit cpio-filter cpio-list \
 
 all:
 
+clean:
+	rm -f *~
+
 check:
 	test/000-nbic
 
