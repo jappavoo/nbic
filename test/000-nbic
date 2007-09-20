@@ -24,6 +24,7 @@ echo '/bin/ls --version' >> /tmp/tmp2/chroot
 chmod +x /tmp/tmp2/chroot
 nd /tmp/tmp2
 nbic -d /tmp/tmp2 -o /tmp/tmp2.cpio
+cpio-fsck /tmp/tmp2.cpio /tmp/tmp2
 cpio-unpack -f /tmp/tmp2.cpio -d /tmp/tmp3
 nd /tmp/tmp3
 sudo rm -rf /tmp/tmp1 /tmp/tmp2 /tmp/tmp3

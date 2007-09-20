@@ -27,13 +27,13 @@ function work()
     return 1;
 
     cd $tmp &&
-    sudo find * -type f > ../$bad &&
-    xargs --arg-file ../$bad md5sum > ../$sums &&
+    sudo find * -type f > $OLDPWD/$bad &&
+    xargs --arg-file $OLDPWD/$bad md5sum > $OLDPWD/$sums &&
     cd $OLDPWD &&
     sudo rm -r -f $tmp &&
     rm $bad $good &&
     cd $dir &&    
-    md5sum -c ../$sums &&
+    md5sum -c $OLDPWD/$sums &&
     cd $OLDPWD &&
     rm $sums ||
     return 1;
