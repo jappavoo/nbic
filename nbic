@@ -36,10 +36,12 @@ function make_cpio_from_list()
     local final=/tmp/nbic.final.$$;
     local excludes="($EXCLUDES|^.$)";
 
-    # Two-stage cpio pack/unpack to get directory components of pathnames
     cd $dir &&
-    sudo touch init chroot &&
-    sudo find $INCLUDES -maxdepth 0 > $tmp &&
+    sudo touch init chroot ||
+    return 1;
+
+    sudo find $INCLUDES -maxdepth 0 > $tmp 2> /dev/null || true;
+
     sort $list $tmp | uniq > $final &&
     sudo cpio -o --quiet -H newc -O $cpio < $final &&
     mkdir $trim &&
@@ -107,6 +109,10 @@ function main()
         -o | --out)
             shift;
             out=$(cd $(dirname $1) && pwd)/$(basename $1);
+            shift;
+            ;;
+        -save-temps)
+            SAVE_TEMPS=1;
             shift;
             ;;
         *)

@@ -5,6 +5,9 @@ PROGRAMS = cpio-add cpio-chroot cpio-diff cpio-edit cpio-filter cpio-list \
 
 all:
 
+check:
+	test/000-nbic
+
 dist:
 	rsync -a --exclude=.git $(PWD)/ /tmp/nbic-$(VERSION)/
 	tar -C /tmp -czf nbic-$(VERSION).tar.gz nbic-$(VERSION)
