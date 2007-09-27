@@ -3,7 +3,7 @@
 NAME=nbic
 VERSION=0.2.1
 EXCLUDES="usr/lib/locale|/usr/lib/gconv|var/log/lastlog|bash_history"
-EXCLUDES="$EXCLUDES|usr/lib/locale"
+EXCLUDES="$EXCLUDES|usr/lib/locale|proc/|sys/"
 INCLUDES="./init ./chroot ./mnt ./proc ./sys ./tmp ./dev ./var/tmp ./home"
 INCLUDES="$INCLUDES ./var/lib ./var/lock ./var/log ./var/run"
 INCLUDES="$INCLUDES ./dev/console ./dev/loop0 ./dev/null ./dev/random"
