@@ -5,9 +5,10 @@ VERSION=0.2.1
 EXCLUDES="usr/lib/locale|/usr/lib/gconv|var/log/lastlog|bash_history"
 EXCLUDES="$EXCLUDES|usr/lib/locale|proc/|sys/"
 INCLUDES="./init ./chroot ./mnt ./proc ./sys ./tmp ./dev ./var/tmp ./home"
-INCLUDES="$INCLUDES ./var/lib ./var/lock ./var/log ./var/run"
+INCLUDES="$INCLUDES ./var/lib ./var/lock ./var/log ./var/run ./var/run/sshd"
 INCLUDES="$INCLUDES ./dev/console ./dev/loop0 ./dev/null ./dev/random"
-INCLUDES="$INCLUDES ./dev/tty0 ./dev/tty1 ./dev/urandom ./dev/pts"
+INCLUDES="$INCLUDES ./dev/tty0 ./dev/tty1 ./dev/urandom ./dev/pts ./dev/ptmx"
+INCLUDES="$INCLUDES ./dev/tty"
 SAVE_TEMPS=0
 
 function help()
@@ -37,9 +38,7 @@ function make_cpio_from_list()
     local final=$(mktemp $out.final.XXXXXX)
     local excludes="($EXCLUDES|^.$)"
 
-    cd $dir &&
-    sudo touch init chroot ||
-    return 1;
+    cd $dir || return 1;
 
     sudo find $INCLUDES -maxdepth 0 > $tmp 2> /dev/null
 
