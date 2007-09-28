@@ -7,7 +7,7 @@ function help()
 {
     echo -e "\`$NAME' checks a cpio against its reference directory\n" \
 	    "\n"                                                       \
-	    "Usage: $NAME CPIO\n"                                      \
+	    "Usage: $NAME CPIO DIR\n"                                  \
 	    " -?, --help      Show this help statement\n"              \
 	    "     --version   Show version statement\n"                \
 	    "\n"                                                       \
@@ -28,12 +28,12 @@ function work()
 
     cd $tmp &&
     sudo find * -type f > $OLDPWD/$bad &&
-    xargs --arg-file $OLDPWD/$bad md5sum > $OLDPWD/$sums &&
+    xargs sudo md5sum < $OLDPWD/$bad > $OLDPWD/$sums &&
     cd $OLDPWD &&
     sudo rm -r -f $tmp &&
     rm $bad $good &&
     cd $dir &&    
-    md5sum -c $OLDPWD/$sums &&
+    sudo md5sum -c $OLDPWD/$sums &&
     cd $OLDPWD &&
     rm $sums ||
     return 1;

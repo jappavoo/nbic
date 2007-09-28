@@ -20,13 +20,16 @@ function work()
 {
     local cpio=$1;
     local dir=$2;
+    local cat=cat; 
 
-    cpio=$(cd $(dirname $cpio) && pwd)/$(basename $cpio);
+    file $cpio | grep -q "gzip compressed data" && {
+        cat=zcat;
+    }
 
+    test -f $cpio &&
     mkdir -p $dir &&
     cd $dir &&
-    test -f $cpio &&
-    sudo cpio -id -u --quiet --no-absolute-filenames < $cpio ||
+    $cat $cpio | sudo cpio -id -u --quiet --no-absolute-filenames ||
     return 1;
 
     return 0;
@@ -46,10 +49,14 @@ function main()
             echo "$NAME $VERSION"; return 1;
             ;;
         -f | --file)
-            shift; cpio=$1; shift;
+            shift;
+            cpio=$(cd $(dirname $1) && pwd)/$(basename $1);
+            shift;
             ;;
         -d | --dir)
-            shift; dir=$1; shift;
+            shift;
+            dir=$(cd $(dirname $1) && pwd)/$(basename $1);
+            shift;
             ;;
         *)
 	    echo "$NAME: bad argument: $1"; return 1;
