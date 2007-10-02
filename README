@@ -12,30 +12,33 @@ Introduction
 The nbic tools automate the process of building stripped-down root
 filesystems for Linux on diskless compute nodes.
 
-The project was developed for running standard Linux userspaces on the
+The project was developed for running standard Linux userspaces on
 Blue Gene/P, but it has also been used to build dom0 images for Xen
 and automated firmware reflashers for blades.  It is informally
 described as a "cpio builder", since Linux's format for its initramfs
 root filesystem is cpio.  The cpio images produced by nbic are
-typically an order of magnitude smaller than the software appliances
-produced by other techniques.
+typically 1% to 5% of the size of the software appliances produced by
+other techniques.
 
-The nbic tools assume the existence of a reference root directory
-tree, whether it is just managed by chroot or is a full nfsroot
-target.  The central design point is that the desired application
-stack is made to work in the reference environment, and then nbic is
-used to snapshot a stateless image that contains only the files
-actually used by the boot process and the target application stack.
+The nbic tools require the existence of a reference root directory
+tree.  This tree may be managed by chroot, be an nfsroot export, or
+the virtual disk of an emulator.  The central design point is that the
+desired application stack is made to work in the reference
+environment, and then nbic is used to snapshot a stateless image that
+contains only the files actually used by the boot process and the
+target application stack.
 
 This approach contrasts with the Busybox approach, in which one builds
 from the bottom up the desired components.  Busybox is a good design
-for the embedded space, but it is hoped that nbic will complement it
-in the purpose-optimized software appliance space.
+for the embedded space, but it is difficult to use it to build
+full-function software appliances that support databases and other
+complex workloads.
 
 Quick Start
 ===========
 
-Assuming you are on a Debian or Ubuntu system:
+Assuming you are on a Debian or Ubuntu system, you can paste the
+following commands into a terminal:
 
  git-clone http://yktgsa.ibm.com/home/a/w/awaterl/git/nbic.git
  export PATH=$PWD/nbic:$PATH
@@ -76,13 +79,11 @@ like this:
 ---
 
 #!/bin/bash
-
 HOME=/root
 LOGNAME=root
 TERM=vt100
 PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin
 ENV="HOME=$HOME LOGNAME=$LOGNAME TERM=$TERM PATH=$PATH"
-
 mount -t proc /proc /proc
 mount -t sysfs /sys /sys
 mount -t devpts devpts /dev/pts
@@ -105,33 +106,51 @@ Customizing Startup
 The Linux kernel looks for a file named /init when it boots from an
 initramfs image.  Typically, your /init will do more than your
 /chroot, since it is intended to boot a system, rather than just get a
-shell.  Through experiment we discovered that it is best to actually
-exec the standard init process after doing what is necessary to get
-the system ready for it.  Here is an example from a Debian initramfs
-we use:
+shell.
+
+If your desired application stack can be started with simple commands
+like /usr/sbin/sshd, we recommend that you write them in /init and be
+done with it.  Here is an example from our sshd appliance:
 
 ---
 
 #!/bin/bash
+mount -t proc /proc /proc
+mount -t sysfs /sys /sys
+mount -t devpts devpts /dev/pts
+/usr/sbin/sshd
+/bin/bash
 
+---
+
+If you are running a particularly complex application stack, it is
+best to exec the init daemon after doing what is necessary to get the
+system ready for it.  Here is an example from a Debian initramfs we
+use:
+
+---
+
+#!/bin/bash
 mount -t proc /proc /proc
 mount -t sysfs /sys /sys
 mount -t devpts devpts /dev/pts
 echo 1 > /proc/sys/net/ipv4/ip_forward
 dhcpd eth1
 exec /sbin/init
-/bin/bash --login --noprofile --norc
 
 ---
 
-In the above example we run bash at the end in case the exec fails.
 We exec init so that it will have the PID of 1 that the kernel
 expects.  Note that we stripped down /etc/rc2.d/ to contain just sshd
 and a few other startup scripts.
 
-The alternative to the exec of init approach is to write your own
-startup logic entirely in /init, usually ending with the explicit
-invocation of sshd.
+Future Work
+===========
+
+appliances, without a hypervisor
+customer wants to compile for ppc but don't have a ppc
+you don't install you just boot
+you don't configure anything you just use
 
 NFS Tracing
 ===========
