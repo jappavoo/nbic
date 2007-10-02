@@ -1,4 +1,4 @@
-VERSION = 0.2.2
+VERSION = 0.2.3
 DESTDIR = /usr/local/bin
 PROGRAMS = cpio-add cpio-chroot cpio-diff cpio-edit cpio-filter cpio-list \
            cpio-merge cpio-pack cpio-sort cpio-unpack nbic nd trace-files
