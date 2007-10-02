@@ -35,52 +35,36 @@ in the purpose-optimized software appliance space.
 Quick Start
 ===========
 
-To make a initramfs image that can run bash, cat, and ls, one must
-first have a chroot directory that contains a root filesystem for the
-desired distribution.  One easy way to do this is to use Debian:
+Assuming you are on a Debian or Ubuntu system:
 
- sudo debootstrap sarge sarge/ http://ftp.debian.org/debian
+ git-clone http://yktgsa.ibm.com/home/a/w/awaterl/git/nbic.git
+ export PATH=$PWD/nbic:$PATH
+ sudo apt-get install cdebootstrap
+ sudo cdebootstrap etch debian
+ echo -e '#!/bin/bash\n/bin/bash' > chroot
+ chmod +x chroot
+ sudo cp chroot debian/chroot
+ sudo mv chroot debian/init
+ nbic -d debian -o bash.cpio
 
-To verify that one has a proper result, the following command should
-result in a root shell:
+You will get a root shell in a chroot environment from the last
+command.  Just run whatever commands you want to be in the image and
+exit the shell.
 
- sudo chroot sarge/ /bin/bash
+Assuming you ran the above commands on an x86 machine, you can
+immediately try out the image:
 
-Now create a file editable by your user account in the chroot directory 
-named `chroot', as nbic will execute it when chroot'ing to the directory:
+ sudo apt-get install qemu
+ gzip -9 bash.cpio
+ qemu -kernel /boot/vmlinuz-$(uname -r)* /dev/zero -initrd bash.cpio.gz
 
- sudo touch sarge/chroot
- sudo chown $USER sarge/chroot
- echo '#!/bin/bash' > sarge/chroot
- echo '/bin/bash' >> sarge/chroot
- chmod +x sarge/chroot
+Chroot Environment
+==================
 
 Note that we use sudo privelege escalation only as necessary in these
 examples.  We recommend that nbic be run as a regular user, since it
 internally invokes sudo if and only if it actually needs the
 privelege.
-
-Now run nbic to create the initramfs cpio image:
-
- nbic -d sarge/ -o bash.cpio
-
-A shell should result from the above command, so simply run all the
-commands desired to end up in the cpio image and exit.  In this
-example, one would run cat and ls.  The resulting image will typically
-be on the order of 3.9MB.  For repeated use, it is better to put the
-desired sequence of command in the /chroot script, to save the effort
-of typing them every time a new image is to be generated.  This is
-safe to do because on boot on a victim machine /init will be executed
-instead of /chroot.
-
-Note that nbic comes with a suite of utilities for manipulating the
-resultant cpio image.  For example, one can list the contents of the
-image just created with:
-
- cpio-list bash.cpio
-
-Chroot Environment
-==================
 
 In the above we created a file named `chroot' in the root of the
 chroot directory.  We do this to automate the series of steps one
