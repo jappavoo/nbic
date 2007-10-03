@@ -144,14 +144,6 @@ We exec init so that it will have the PID of 1 that the kernel
 expects.  Note that we stripped down /etc/rc2.d/ to contain just sshd
 and a few other startup scripts.
 
-Future Work
-===========
-
-appliances, without a hypervisor
-customer wants to compile for ppc but don't have a ppc
-you don't install you just boot
-you don't configure anything you just use
-
 NFS Tracing
 ===========
 
