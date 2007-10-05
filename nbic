@@ -50,7 +50,8 @@ function make_cpio_from_list()
 
     sudo find . | egrep -v $excludes > $final
 
-    sudo cpio -o --quiet -H newc -O $out < $final ||
+    sudo cpio -o --quiet -H newc -O $out < $final &&
+    sudo chown $USER $out ||
     return 1;
 
     test $SAVE_TEMPS -eq 0 && {

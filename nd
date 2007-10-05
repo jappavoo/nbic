@@ -6,7 +6,10 @@ test $# -eq 1 || {
 }
 
 test -f $1/chroot || {
-    echo "FAIL: missing file: $1/chroot"
+    echo "WARN: creating simple $1/chroot" &&
+    echo -e '#!/bin/bash\n/bin/bash' > chroot &&
+    chmod +x chroot &&
+    sudo cp chroot $1/chroot || 
     exit 1
 }
 
