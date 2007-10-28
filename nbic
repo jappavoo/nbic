@@ -8,7 +8,7 @@ INCLUDES="./init ./chroot ./mnt ./proc ./sys ./tmp ./dev ./var/tmp ./home"
 INCLUDES="$INCLUDES ./var/lib ./var/lock ./var/log ./var/run ./var/run/sshd"
 INCLUDES="$INCLUDES ./dev/console ./dev/loop0 ./dev/null ./dev/random"
 INCLUDES="$INCLUDES ./dev/tty0 ./dev/tty1 ./dev/urandom ./dev/pts ./dev/ptmx"
-INCLUDES="$INCLUDES ./dev/tty"
+INCLUDES="$INCLUDES ./dev/tty ./dev/log"
 SAVE_TEMPS=0
 
 function help()
@@ -32,33 +32,33 @@ function make_cpio_from_list()
     local out=$2
     local list=$3
 
-    local trim=$(mktemp -d $out.d.XXXXXX)
-    local cpio=$(mktemp $out.XXXXXX)
-    local tmp=$(mktemp $out.list.XXXXXX)
-    local final=$(mktemp $out.final.XXXXXX)
-    local excludes="($EXCLUDES|^.$)"
+    excludes="($EXCLUDES|^.$)"
 
-    cd $dir || return 1;
-
-    sudo find $INCLUDES -maxdepth 0 > $tmp 2> /dev/null
-
-    sort $list $tmp | uniq > $final &&
-    sudo cpio -o --quiet -H newc -O $cpio < $final &&
-    cd $trim &&
-    sudo cpio -id --quiet --no-absolute-filenames < $cpio ||
+    includes=$(mktemp $PWD/0.nbic.XXXXXX) &&
+    initial=$(mktemp $PWD/1.nbic.XXXXXX) &&
+    stage=$(mktemp -d $PWD/2.nbic.XXXXXX) &&
+    final=$(mktemp $PWD/3.nbic.XXXXXX) &&
+    cd $dir ||
     return 1;
 
-    sudo find . | egrep -v $excludes > $final
+    sudo find $INCLUDES -maxdepth 0 > $includes 2> /dev/null;
 
+    cd $OLDPWD &&
+    sort $list $includes | uniq > $initial &&
+    sudo rsync -a --files-from=$initial $dir/ $stage/ &&
+    sudo touch $stage &&
+    cd $stage &&
+    sudo find . | egrep -v $excludes > $final &&
     sudo cpio -o --quiet -H newc -O $out < $final &&
+    cd $OLDPWD &&
     sudo chown $USER $out ||
     return 1;
 
     test $SAVE_TEMPS -eq 0 && {
-        sudo rm $tmp &&
-        sudo rm $final &&
-        sudo rm $cpio &&
-        sudo rm -r -f $trim || 
+        sudo rm $includes &&
+        sudo rm $initial &&
+        sudo rm -r -f $stage &&
+        sudo rm $final ||
         return 1
     }
 
@@ -105,7 +105,9 @@ function main()
             echo "$NAME $VERSION"; return 1;
             ;;
         -d | --dir)
-            shift; dir=$1; shift;
+            shift;
+            dir=$(cd $(dirname $1) && pwd)/$(basename $1);
+            shift;
             ;;
         -l | --list)
             shift;
@@ -127,8 +129,6 @@ function main()
             ;;
         esac
     done
-
-    [ -z "$out" ] && out=$PWD/nbic.cpio;
 
     [ -d "$dir" -a -n "$out" ] || { 
         help; 

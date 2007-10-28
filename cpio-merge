@@ -71,11 +71,6 @@ function main()
 	return 1;
     }
 
-    [ -f "$cpio3" ] && {
-    	echo "$NAME: refusing to clobber cpio: $cpio3"; 
-	return 1;
-    }
-
     work $cpio1 $cpio2 $cpio3 || { 
     	echo "$NAME: bailing out because of errors";
 	return 1;
