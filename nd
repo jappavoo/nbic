@@ -1,5 +1,11 @@
 #!/bin/bash
 
+HOME=/root
+LOGNAME=root
+TERM=vt100
+PATH=/bin:/usr/bin:/usr/local/bin:/sbin:/usr/sbin
+ENV="HOME=$HOME LOGNAME=$LOGNAME TERM=$TERM PATH=$PATH"
+
 test $# -eq 1 || {
     echo "usage: $(basename $0) DIR"
     exit 1
@@ -20,4 +26,4 @@ test -x $1/chroot || {
     exit 1
 }
 
-sudo chroot $1 /chroot
+env -i $ENV sudo chroot $1 /chroot
