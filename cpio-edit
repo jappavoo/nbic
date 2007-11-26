@@ -12,7 +12,7 @@ function help()
 	    "     --version   Show version statement\n"                       \
 	    "\n"                                                              \
 	    "Examples: $NAME foo.cpio\n"                                      \
-	    "          $NAME foo.cpio dir\n";
+	    "          $NAME foo.cpio bar.d\n";
 }
 
 function merge()
