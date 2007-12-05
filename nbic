@@ -26,7 +26,7 @@ function help()
         "          $NAME -d linux -l bash.list -o ramfs.cpio\n";
 }
 
-function make_cpio_from_list()
+function build_cpio()
 {
     local dir=$1
     local out=$2
@@ -65,7 +65,7 @@ function make_cpio_from_list()
     return 0;
 }
 
-function work()
+function trace_chroot()
 {
     local dir=$1;
     local out=$2;
@@ -85,7 +85,7 @@ function work()
     sudo find . -path ./proc -prune -o -anewer $stamp > $raw &&
     cd $OLDPWD || return 1;
 
-    make_cpio_from_list $dir $out $raw || return 1;
+    build_cpio $dir $out $raw || return 1;
 
     return 0;
 }
@@ -136,9 +136,9 @@ function main()
     }
 
     if [ -f "$list" ]; then
-        make_cpio_from_list $dir $out $list;
+        build_cpio $dir $out $list;
     else
-        work $dir $out;
+        trace_chroot $dir $out;
     fi
 
     if [ $? -ne 0 ]; then
