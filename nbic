@@ -1,15 +1,13 @@
 #!/bin/bash
 
 NAME=nbic
-VERSION=0.2.4
-EXCLUDES="usr/lib/locale|/usr/lib/gconv|var/log/lastlog|bash_history"
-EXCLUDES="$EXCLUDES|usr/lib/locale|proc/|sys/"
 INCLUDES="./init ./chroot ./mnt ./proc ./sys ./tmp ./dev ./var/tmp ./home"
 INCLUDES="$INCLUDES ./var/lib ./var/lock ./var/log ./var/run ./var/run/sshd"
 INCLUDES="$INCLUDES ./dev/console ./dev/loop0 ./dev/null ./dev/random"
 INCLUDES="$INCLUDES ./dev/tty0 ./dev/tty1 ./dev/urandom ./dev/pts ./dev/ptmx"
 INCLUDES="$INCLUDES ./dev/tty ./dev/log"
 SAVE_TEMPS=0
+EXCLUDES="./usr/lib/locale|./usr/lib/gconv|./var/log/lastlog"
 
 function help()
 {
