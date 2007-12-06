@@ -1,6 +1,7 @@
 #!/bin/bash
 
 NAME=nbic
+VERSION=0.2.5
 INCLUDES="./init ./chroot ./mnt ./proc ./sys ./tmp ./dev ./var/tmp ./home"
 INCLUDES="$INCLUDES ./var/lib ./var/lock ./var/log ./var/run ./var/run/sshd"
 INCLUDES="$INCLUDES ./dev/console ./dev/loop0 ./dev/null ./dev/random"
