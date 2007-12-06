@@ -21,7 +21,7 @@ function work()
 
     cpio-unpack -f "$cpio" -d $tmp &&
     cd $tmp &&
-    sudo du -ab * &&
+    sudo du -ak * &&
     cd $OLDPWD &&
     sudo rm -rf $tmp ||
     return 1;

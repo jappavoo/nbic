@@ -12,7 +12,9 @@ function help()
 	    "     --version   Show version statement\n"                       \
 	    "\n"                                                              \
 	    "Examples: $NAME foo.cpio\n"                                      \
-	    "          $NAME foo.cpio bar.d\n";
+	    "          $NAME foo.cpio bar/\n"                                 \
+	    "\n"                                                              \
+	    "Notes: the two-argument form has nbic semantics\n";
 }
 
 function merge()
@@ -23,7 +25,7 @@ function merge()
     local out=$(mktemp 1.nbic.XXXXXX);
 
     nbic -d $dir -o $tmp &&
-    cpio-merge -l $tmp -r $cpio -o $out &&
+    cpio-merge -l $cpio -r $tmp -o $out &&
     rm $tmp &&
     mv $out $cpio ||
     return 1;

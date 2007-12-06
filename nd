@@ -11,11 +11,19 @@ test $# -eq 1 || {
     exit 1
 }
 
+test -f $1/init || {
+    echo "WARN: creating simple $1/init" &&
+    echo -e '#!/bin/bash\n/bin/bash' > init &&
+    chmod +x init &&
+    sudo mv init $1/init || 
+    exit 1
+}
+
 test -f $1/chroot || {
     echo "WARN: creating simple $1/chroot" &&
     echo -e '#!/bin/bash\n/bin/bash' > chroot &&
     chmod +x chroot &&
-    sudo cp chroot $1/chroot || 
+    sudo mv chroot $1/chroot || 
     exit 1
 }
 
