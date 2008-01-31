@@ -9,6 +9,7 @@ INCLUDES="$INCLUDES ./dev/tty0 ./dev/tty1 ./dev/urandom ./dev/pts ./dev/ptmx"
 INCLUDES="$INCLUDES ./dev/tty ./dev/log"
 SAVE_TEMPS=0
 EXCLUDES="./usr/lib/locale|./usr/lib/gconv|./var/log/lastlog"
+EXCLUDES="$EXCLUDES|./proc/|./sys/"
 
 function help()
 {
