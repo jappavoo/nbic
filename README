@@ -79,15 +79,10 @@ like this:
 ---
 
 #!/bin/bash
-HOME=/root
-LOGNAME=root
-TERM=vt100
-PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin
-ENV="HOME=$HOME LOGNAME=$LOGNAME TERM=$TERM PATH=$PATH"
 mount -t proc /proc /proc
 mount -t sysfs /sys /sys
 mount -t devpts devpts /dev/pts
-env -i $ENV /bin/bash --login --noprofile --norc
+/bin/bash
 umount /dev/pts
 umount /sys
 umount /proc
