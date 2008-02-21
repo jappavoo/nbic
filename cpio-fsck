@@ -33,12 +33,14 @@ function work()
     sudo rm -r -f $tmp &&
     rm $bad $good &&
     cd $dir &&    
-    sudo md5sum -c $OLDPWD/$sums &&
-    cd $OLDPWD &&
-    rm $sums ||
-    return 1;
+    sudo md5sum -c $OLDPWD/$sums
 
-    return 0;
+    r=$?
+
+    cd $OLDPWD &&
+    rm $sums 
+
+    return $r;
 }
 
 function main()
@@ -74,7 +76,6 @@ function main()
     }
 
     work "$cpio" "$dir" || { 
-    	echo "$NAME: bailing out because of errors";
 	return 1;
     }
 

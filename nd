@@ -34,4 +34,8 @@ test -x $1/chroot || {
     exit 1
 }
 
-env -i $ENV sudo chroot $1 /chroot
+if test -f $1/proc/cmdline; then 
+    env -i $ENV sudo chroot $1 /bin/bash
+else
+    env -i $ENV sudo chroot $1 /chroot
+fi
