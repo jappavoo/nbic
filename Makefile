@@ -1,7 +1,10 @@
 VERSION = 0.2.6
-DESTDIR = /usr/local/bin
-PROGRAMS = cpio-add cpio-chroot cpio-diff cpio-edit cpio-filter cpio-list \
-           cpio-merge cpio-pack cpio-sort cpio-unpack nbic nd trace-files
+DESTDIR =
+PREFIX = /usr/local
+BINDIR = $(PREFIX)/bin
+PROGRAMS = cpio-add cpio-chroot cpio-diff cpio-du cpio-edit cpio-filter \
+		   cpio-fsck cpio-ls cpio-merge cpio-pack cpio-unpack nbic nd \
+		   trace-files
 
 all:
 
@@ -17,4 +20,5 @@ dist:
 	rm -r /tmp/nbic-$(VERSION)
 
 install: all
-	install $(PROGRAMS) $(DESTDIR)
+	install -d $(DESTDIR)$(BINDIR)
+	install -m 755 $(PROGRAMS) $(DESTDIR)$(BINDIR)
