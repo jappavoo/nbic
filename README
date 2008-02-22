@@ -55,11 +55,25 @@ command.  Just run whatever commands you want to be in the image and
 exit the shell.
 
 Assuming you ran the above commands on an x86 machine, you can
-immediately try out the image:
+immediately try out the image[1]:
 
  sudo apt-get install qemu
  gzip -9 bash.cpio
  qemu -kernel /boot/vmlinuz-$(uname -r)* /dev/zero -initrd bash.cpio.gz
+
+Using An Image
+==============
+
+In the quick start you produced a cpio image.  You can boot it with
+qemu as shown above, but you can also quickly explore it by running
+the following command which unpacks the image into a temporary
+directory and gives you a chroot shell in it:
+
+ cpio-chroot bash.cpio.gz
+
+You can also unpack the image into a new directory tree:
+
+ cpio-unpack -f bash.cpio.gz -d bash
 
 Chroot Environment
 ==================
@@ -261,6 +275,15 @@ exist if /dev is not explicitly included in the cpio image.  The third
 is that it can be difficult to guess which device nodes are required
 by init and sshd.  Each of these three problems are automatically
 handled by nbic.
+
+Footnotes
+=========
+
+[1] If you do not have X Windows available, you will want to instruct
+    qemu not to open a graphical window as it does by default.  Simply
+    add these two options to your qemu invocation:
+
+     -nographic -append console=ttyS0
 
 ----------------------------------------------------------------------
 Copyright information:
