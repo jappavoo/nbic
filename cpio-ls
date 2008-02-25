@@ -1,6 +1,6 @@
 #!/bin/bash
 
-NAME=cpio-list
+NAME=cpio-ls
 VERSION=0.2.2
 
 function help()
