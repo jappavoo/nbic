@@ -1,11 +1,12 @@
 Name:      nbic
 Summary:   Net Boot Image Compiler
-Version:   0.2.6
+Version:   0.2.7
 Release:   1
 Group:     System/Base
 License:   IBM Proprietary
 URL:       http://yktgsa.ibm.com/home/a/w/awaterl/pub/kittyhawk/nbic/
 Source0:   http://yktgsa.ibm.com/home/a/w/awaterl/pub/kittyhawk/nbic/%{name}-%{version}.tar.gz
+Requires:  rsync
 Buildroot: %{_tmppath}/%{name}-%{version}-buildroot
 
 %description
@@ -33,5 +34,8 @@ rm -rf $RPM_BUILD_ROOT
 %{_bindir}/trace-files
 
 %changelog
+*Mon Feb 25 2008 Josh Boyer <jwboyer@linux.vnet.ibm.com>
+- Add requires on rsync
+
 *Thu Feb 21 2008 Josh Boyer <jwboyer@linux.vnet.ibm.com>
 - Create initial spec file
