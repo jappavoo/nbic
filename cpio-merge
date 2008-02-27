@@ -1,7 +1,6 @@
 #!/bin/bash
 
 NAME=cpio-merge
-VERSION=0.2.6
 
 function help()
 {
@@ -49,7 +48,7 @@ function main()
             help; return 1;
             ;;
         --version)
-            echo "$NAME $VERSION"; return 1;
+            nbic --version; return 1;
             ;;
         -l | --left)
             shift; cpio1=$1; shift;

@@ -1,7 +1,6 @@
 #!/bin/bash
 
 NAME=cpio-add
-VERSION=0.2.6
 
 function help()
 {
@@ -35,7 +34,7 @@ function main()
             help; return 1;
             ;;
         --version)
-            echo "$NAME $VERSION"; return 1;
+            nbic --version; return 1;
             ;;
         *)
             if [ -z "$cpio" ]; then

@@ -1,7 +1,6 @@
 #!/bin/bash
 
 NAME=trace-files
-VERSION=0.2.2
 
 function help()
 {
@@ -43,7 +42,7 @@ function main()
             help; return 1;
             ;;
         --version)
-            echo "$NAME $VERSION"; return 1;
+            nbic --version; return 1;
             ;;
         -t | --stamp)
             shift; 
