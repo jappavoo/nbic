@@ -83,7 +83,7 @@ function trace_chroot()
     nd $dir;
 
     cd $dir &&
-    sudo find . -path ./proc -prune -o -anewer $stamp > $raw &&
+    sudo find . -path ./proc -prune -o -anewer $stamp -o -cnewer $stamp -o -newer $stamp > $raw &&
     cd $OLDPWD || return 1;
 
     build_cpio $dir $out $raw || return 1;
