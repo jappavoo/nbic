@@ -79,7 +79,14 @@ function trace_chroot()
     local final=/tmp/nbic.final.$$;
 
     touch $stamp &&
-    sleep 1.0 &&
+    sleep 1.0 ||
+    return 1;
+
+    type nd &> /dev/null || {
+        echo "$NAME: please add the 'nd' utility to PATH (it comes with nbic)"
+        return 1;
+    }
+
     nd $dir;
 
     cd $dir &&
