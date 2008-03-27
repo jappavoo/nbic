@@ -10,7 +10,7 @@ INCLUDES="$INCLUDES ./dev/tty ./dev/log ./dev/zero"
 SAVE_TEMPS=0
 EXCLUDES="^./usr/lib/locale|^./usr/lib/gconv|^./var/log/lastlog"
 EXCLUDES="$EXCLUDES|^./proc/|^./sys/|^./root/.bash_history|^./var/run/utmp"
-EXCLUDES="$EXCLUDES|^./var/cache/fontconfig"
+EXCLUDES="$EXCLUDES|^./var/cache/fontconfig|^./var/tmp/vi.recover"
 
 function help()
 {
