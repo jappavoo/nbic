@@ -4,13 +4,14 @@ NAME=nbic
 VERSION=0.2.9
 INCLUDES="./init ./chroot ./mnt ./proc ./sys ./tmp ./dev ./var/tmp ./home"
 INCLUDES="$INCLUDES ./var/lib ./var/lock ./var/log ./var/run ./var/run/sshd"
-INCLUDES="$INCLUDES ./dev/console ./dev/loop0 ./dev/null ./dev/random"
+INCLUDES="$INCLUDES ./dev/console ./dev/null ./dev/random"
 INCLUDES="$INCLUDES ./dev/tty0 ./dev/tty1 ./dev/urandom ./dev/pts ./dev/ptmx"
-INCLUDES="$INCLUDES ./dev/tty ./dev/log ./dev/zero"
+INCLUDES="$INCLUDES ./dev/tty ./dev/log ./dev/zero ./dev/loop0 ./dev/loop1"
 SAVE_TEMPS=0
 EXCLUDES="^./usr/lib/locale|^./usr/lib/gconv|^./var/log/lastlog"
 EXCLUDES="$EXCLUDES|^./proc/|^./sys/|^./root/.bash_history|^./var/run/utmp"
 EXCLUDES="$EXCLUDES|^./var/cache/fontconfig|^./var/tmp/vi.recover"
+EXCLUDES="$EXCLUDES|^./var/log/wtmp"
 
 function help()
 {
