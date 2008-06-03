@@ -1,32 +1,31 @@
 #!/bin/bash
 
-NAME=loop-edit
+NAME=disk-cpio
 
 function help()
 {
-    echo -e "\`$NAME' edits disk images by dropping user in chroot shell\n"   \
+    echo -e "\`$NAME' unpacks a cpio image onto a disk image\n"               \
 	    "\n"                                                              \
-	    "Usage: $NAME DISK\n"                                             \
+	    "Usage: $NAME CPIO DISK\n"                                        \
 	    " -?, --help      Show this help statement\n"                     \
 	    "     --version   Show version statement\n"                       \
 	    "\n"                                                              \
-	    "Examples: $NAME template.img\n"                                  \
-	    "          $NAME template.vmdk\n"                                 \
+	    "Examples: $NAME alpha.cpio beta.img\n"                           \
+	    "          $NAME alpha.cpio beta.vmdk\n"                          \
 	    "\n"                                                              \
 	    "Notes: VMWare images undergo internal conversion to qemu images\n";
 }
 
 function work()
 {
-    local disk=$1;
+    local cpio=$1;
+    local disk=$2;
 
     local dir=$(mktemp -d 000.$NAME.XXXXXX);
 
     test -d "$dir" &&
     sudo mount -o loop,offset=32256 $disk $dir &&
-    cd $dir &&
-    sudo /bin/bash &&
-    cd $OLDPWD &&
+    cpio-unpack -f $cpio -d $dir &&
     sudo umount $dir &&
     rmdir $dir ||
     return 1;
@@ -36,6 +35,7 @@ function work()
 
 function main()
 {
+    local cpio;
     local disk;
 
     while [ $# -gt 0 ]; do
@@ -47,7 +47,9 @@ function main()
             nbic --version; return 1;
             ;;
         *)
-            if [ -z "$disk" ]; then
+            if [ -z "$cpio" ]; then
+                cpio=$(cd $(dirname $1) && pwd)/$(basename $1);
+            elif [ -z "$disk" ]; then
                 disk=$(cd $(dirname $1) && pwd)/$(basename $1);
 	    else
 	        echo "$NAME: too many arguments: $1"; return 1;
@@ -57,12 +59,12 @@ function main()
         esac
     done
    
-    if [ ! -f "$disk" ]; then
+    if [ ! -f "$cpio" -o ! -f "$disk" ]; then
     	help;
 	return 1;
     fi
 
-    work "$disk";
+    work "$cpio" "$disk";
 
     if [ $? -ne 0 ]; then
     	echo "$NAME: bailing out because of errors";
