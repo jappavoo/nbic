@@ -35,7 +35,7 @@ test -x $1/chroot || {
 }
 
 if test -f $1/proc/cmdline; then 
-    sudo env -i $ENV /usr/sbin/chroot $1 /bin/bash
+    sudo env -i $ENV chroot $1 /bin/bash
 else
-    sudo env -i $ENV /usr/sbin/chroot $1 /chroot
+    sudo env -i $ENV chroot $1 /chroot
 fi

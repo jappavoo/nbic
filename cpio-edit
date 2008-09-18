@@ -82,7 +82,7 @@ function main()
 	return 1;
     fi
 
-    file "$cpio" | grep "cpio archive" || {
+    file "$cpio" | grep -q "cpio archive" || {
         echo "error: argument is not a cpio archive";
         return 1;
     }
