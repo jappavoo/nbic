@@ -9,7 +9,7 @@ PROGRAMS = cpio-add cpio-chroot cpio-diff cpio-du cpio-edit cpio-filter \
 all:
 
 clean:
-	rm -f *~ nbic-*.tar.gz
+	rm -f *~ nbic-*.tar.gz 0.*
 
 check:
 	test/000-atime
