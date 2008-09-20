@@ -76,15 +76,24 @@ function trace_chroot()
     out=$(cd $(dirname $out) && pwd)/$(basename $out);
     local trim=$out.$$.d
     local cpio=$out.$$.cpio
-    local stamp=/tmp/nbic.tamp.$$;
     local raw=/tmp/nbic.raw.$$;
     local final=/tmp/nbic.final.$$;
 
+    stamp=$(mktemp $PWD/0.0.stamp.XXX) &&
+    newer=$(mktemp $PWD/0.1.newer.XXX) &&
+    sleep 1.0 &&
+    cat $newer &&
     touch $stamp &&
-    sleep 1.0 ||
+    sleep 1.0 &&
+    cat $newer ||
     return 1;
 
-    type nd &> /dev/null || {
+    find $newer -anewer $stamp | grep -q $newer || {
+	echo "$NAME: your filesystem seems to be using relatime";
+	return 1;
+    }
+
+    type -p nd || {
         echo "$NAME: please add the 'nd' utility to PATH (it comes with nbic)"
         return 1;
     }
