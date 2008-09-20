@@ -10,7 +10,7 @@ strace -e trace=file -f bash -c /bin/ls --version >/dev/null 2> bash.strace
 awk -F\" '{print $2}' bash.strace > bash.strace.1
 grep / bash.strace.1 > bash.strace.2
 cp bash.strace.2 bash.strace.3
-find -L /lib/ld-* >> bash.strace.3
+find -L /lib/ld-* /lib/libc.so* >> bash.strace.3
 sort bash.strace.3 > bash.strace.4
 uniq bash.strace.4 > bash.strace.5
 egrep -v "$PWD|/proc|/sys|/dev" bash.strace.5 > bash.strace.6

@@ -12,7 +12,8 @@ clean:
 	rm -f *~ nbic-*.tar.gz
 
 check:
-	test/000-nbic
+	test/000-atime
+	test/001-nbic
 
 dist:
 	rsync -a --delete --exclude=.git $(PWD)/ /tmp/nbic-$(VERSION)/
