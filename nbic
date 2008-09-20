@@ -93,7 +93,7 @@ function trace_chroot()
 	return 1;
     }
 
-    type -p nd || {
+    type nd &> /dev/null || {
         echo "$NAME: please add the 'nd' utility to PATH (it comes with nbic)"
         return 1;
     }
