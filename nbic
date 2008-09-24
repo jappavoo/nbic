@@ -102,7 +102,9 @@ function trace_chroot()
 
     cd $dir &&
     sudo find . -path ./proc -prune -o -anewer $stamp -o -cnewer $stamp -o -newer $stamp > $raw &&
-    cd $OLDPWD || return 1;
+    cd $OLDPWD &&
+    rm $stamp $newer || 
+    return 1;
 
     build_cpio $dir $out $raw || return 1;
 
