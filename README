@@ -1,5 +1,5 @@
-`nbic' README -- instructions for building and introduction to the project.
-Copyright (C) 2007  Amos Waterland.
+`nbic' README -- instructions for using and introduction to the project.
+Copyright (C) 2007,2008  Amos Waterland.
 See the end for copying conditions.
 
 Net Boot Image Compiler - nbic.
@@ -107,7 +107,9 @@ Note that nbic provides and uses internally the nd utility to get a
 shell in your chroot directory, so instead of typing the full chroot
 commands listed above one can simply supply the directory as an
 argument to nd and it will chroot with /chroot in the exact same way
-that nbic does.
+that nbic does.  Here is an example:
+
+ nd debian
 
 Customizing Startup
 ===================
@@ -121,33 +123,25 @@ If your desired application stack can be started with simple commands
 like /usr/sbin/sshd, we recommend that you write them in /init and be
 done with it.  Here is an example from our sshd appliance:
 
----
-
-#!/bin/bash
-mount -t proc /proc /proc
-mount -t sysfs /sys /sys
-mount -t devpts devpts /dev/pts
-/usr/sbin/sshd
-/bin/bash
-
----
+ #!/bin/bash
+ mount -t proc /proc /proc
+ mount -t sysfs /sys /sys
+ mount -t devpts devpts /dev/pts
+ /usr/sbin/sshd
+ /bin/bash
 
 If you are running a particularly complex application stack, it is
 best to exec the init daemon after doing what is necessary to get the
 system ready for it.  Here is an example from a Debian initramfs we
 use:
 
----
-
-#!/bin/bash
-mount -t proc /proc /proc
-mount -t sysfs /sys /sys
-mount -t devpts devpts /dev/pts
-echo 1 > /proc/sys/net/ipv4/ip_forward
-dhcpd eth1
-exec /sbin/init
-
----
+ #!/bin/bash
+ mount -t proc /proc /proc
+ mount -t sysfs /sys /sys
+ mount -t devpts devpts /dev/pts
+ echo 1 > /proc/sys/net/ipv4/ip_forward
+ dhcpd eth1
+ exec /sbin/init
 
 We exec init so that it will have the PID of 1 that the kernel
 expects.  Note that we stripped down /etc/rc2.d/ to contain just sshd
@@ -255,10 +249,10 @@ If sshd fails to start with a message about PRNG not being seeded, you
 are most likely missing /dev/random.  See the above comment about SLES
 and its use of udev.
 
-If debootstrap fails, it may be that it does not support the Debian
-release you are trying to bootstrap.  You can also try the cdeboostrap
-package, which seems to be what pbuilder uses internally.  Here is an
-example:
+If you try to use debootstrap and it fails, it may be that it does not 
+support the Debian release you are trying to bootstrap.  You can also 
+try the cdeboostrap package, which seems to be what pbuilder uses 
+internally.  Here is an example:
 
  sudo cdebootstrap etch etch
 
@@ -288,7 +282,7 @@ Footnotes
 ----------------------------------------------------------------------
 Copyright information:
 
-Copyright (C) 2007 Amos Waterland
+Copyright (C) 2007,2008  Amos Waterland
 
    Permission is granted to anyone to make or distribute verbatim copies
    of this document as received, in any medium, provided that the
