@@ -1,6 +1,6 @@
 Name:      nbic
 Summary:   Net Boot Image Compiler
-Version:   0.2.10
+Version:   0.3.0
 Release:   1
 Group:     System/Base
 License:   IBM Proprietary
